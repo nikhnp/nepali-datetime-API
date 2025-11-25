@@ -4,17 +4,24 @@ import nepali_datetime
 from pydantic import BaseModel
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.openapi.docs import get_swagger_ui_html
 
 app = FastAPI(
     title="Nepali Datetime",
     description="The package similar to Python's core datetime package that operates on Bikram Sambat (B.S) "
                 "date & Nepal Time +05:45.",
     version=nepali_datetime.__version__,
-    redoc_url='/',
+    redoc_url=None,
+    docs_url=None,
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
+@app.get("/", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Swagger UI"
+    )
 
 class DateResponse(BaseModel):
     data: str = str(nepali_datetime.date.today()) 
@@ -54,3 +61,4 @@ def nepali_datetime_date_convert_ad_bs(ad_date: str = Query('2024-02-12'), fmt: 
 def nepali_datetime_datetime(fmt: str = Query('%Y-%m-%d %H:%M:%S.%f', alias='format')):
     data = nepali_datetime.datetime.now()
     return {"data": data.strftime(fmt)}
+
